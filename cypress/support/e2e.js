@@ -15,6 +15,7 @@
 
 // Import commands.js using ES2015 syntax:
 import './commands'
+import "cypress-real-events/support";
 
 Cypress.on('uncaught:exception', (err, runnable) => {
   // Log but do not fail the test for non-critical app errors

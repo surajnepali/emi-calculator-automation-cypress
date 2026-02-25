@@ -23,5 +23,7 @@ describe("Home Loan EMI Calculator", () => {
     emiCalculatorPage.moveLoanTenureSlider(tenure, tenureType);
 
     emiCalculatorPage.validateEmiPaymentSummary(`${principal * 100000}`, annualRate, tenure, tenureType);
-  });
+    cy.wait(2500);
+    emiCalculatorPage.verifyHighchartPoints();
+});
 });
