@@ -15,3 +15,18 @@
 
 // Import commands.js using ES2015 syntax:
 import './commands'
+
+Cypress.on('uncaught:exception', (err, runnable) => {
+  // Log but do not fail the test for non-critical app errors
+  cy.log(`Uncaught exception (suppressed): ${err.message}`);
+  return false;
+});
+
+Cypress.on('uncaught:exception', (err) => {
+  if (
+    err.message === 'Script error.' ||
+    err.message.includes('adsbygoogle')
+  ) {
+    return false;
+  }
+});

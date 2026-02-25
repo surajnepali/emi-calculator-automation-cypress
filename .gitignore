@@ -1,4 +1,11 @@
 node_modules
 downloads/
 .env.*
-reports/
+
+# Cypress generated artifacts
+cypress/reports/
+cypress/downloads/
+cypress/screenshots/
+
+# IDE files
+.vscode/

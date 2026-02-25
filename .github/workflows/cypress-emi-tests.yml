@@ -1,0 +1,175 @@
+# ============================================================
+# GitHub Actions — Cypress EMI Calculator CI/CD Pipeline
+# File: .github/workflows/cypress-emi-tests.yml
+#
+# GitHub Environments (Settings → Environments):
+#   staging   →  maps to .env.staging
+#   qa        →  maps to .env.qa
+#   test      →  maps to .env.test
+#
+# Secrets per Environment (Settings → Environments → <n> → Secrets):
+#   BASE_URL                  — EMI Calculator site URL
+# ============================================================
+
+name: 🏠 Cypress EMI Calculator — CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+  pull_request:
+    branches:
+      - main
+      - develop
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - qa
+          - test
+      browser:
+        description: 'Browser to run tests on'
+        required: true
+        default: 'chrome'
+        type: choice
+        options:
+          - chrome
+          - firefox
+          - edge
+          - electron
+
+  schedule:
+    - cron: '0 0 * * 1-5'
+
+# ──────────────────────────────────────────────────────────────
+env:
+  NODE_VERSION: '20'
+  BROWSER: ${{ github.event.inputs.browser || 'chrome' }}
+
+# ──────────────────────────────────────────────────────────────
+jobs:
+
+  # JOB 1: Install & Cache Dependencies
+  install:
+    name: 📦 Install Dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️  Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install npm dependencies
+        run: npm ci
+
+      - name: 💾 Cache Cypress binary
+        uses: actions/cache@v4
+        id: cypress-cache
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            cypress-${{ runner.os }}-
+
+      - name: 🔧 Install Cypress binary (if not cached)
+        if: steps.cypress-cache.outputs.cache-hit != 'true'
+        run: npx cypress install
+
+      - name: ✅ Verify Cypress installation
+        run: npx cypress verify
+
+  # JOB 2 — TEST
+  cypress-test:
+    name: 🔵 Test — Home Loan EMI Tests
+    runs-on: ubuntu-latest
+    needs: install
+    environment: test
+
+    if: |
+      github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'test'
+
+    steps:
+      - name: ⬇️  Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 💾 Restore Cypress binary cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: 🔒 Create .env.test from Environment Secrets
+        run: |
+          cat > .env.test << EOF
+          BASE_URL=${{ secrets.BASE_URL }}
+          TEST_ENV=test
+          TEST_RETRY_COUNT=0
+          EOF
+          echo "✅ .env.test created from GitHub Environment secrets"
+
+      - name: 🧹 Clean reports and artifacts
+        run: |
+          rm -rf cypress/reports cypress/screenshots cypress/downloads cypress/videos
+          mkdir -p cypress/reports cypress/screenshots cypress/downloads cypress/videos
+
+      - name: 🧪 Run Cypress — Test
+        uses: cypress-io/github-action@v6
+        with:
+          browser: ${{ env.BROWSER }}
+          spec: cypress/e2e/homeLoan.cy.js
+          headed: false
+          config: screenshotOnRunFailure=true,video=true
+        env:
+          CYPRESS_ENV: test
+          BASE_URL: ${{ secrets.BASE_URL }}
+          TEST_ENV: test
+
+      - name: 📊 Merge Mochawesome Reports
+        if: always()
+        run: npx mochawesome-merge cypress/reports/*.json -o cypress/reports/merged-report.json || true
+
+      - name: 📊 Generate HTML Report
+        if: always()
+        run: |
+          npx marge cypress/reports/merged-report.json \
+            --reportDir cypress/reports/final \
+            --inline \
+            --reportTitle "EMI Calculator — Test | ${{ env.BROWSER }}" || true
+
+      - name: 📁 Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-test-${{ env.BROWSER }}
+          path: cypress/reports/
+          retention-days: 30
+
+      - name: 📸 Upload Screenshots (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-test-${{ env.BROWSER }}
+          path: cypress/screenshots/
+          retention-days: 7

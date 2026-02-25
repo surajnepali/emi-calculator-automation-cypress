@@ -6,9 +6,19 @@
   "scripts": {
     "cy:open": "cypress open",
     "cy:run": "cypress run",
-    "cy:headless": "cypress run --browser chrome --headless",
-    "report:merge": "mochawesome-merge reports/*.json > reports/output.json",
-    "report:generate": "marge reports/output.json -f report -o reports"
+    "cy:run:test": "CYPRESS_ENV=test cypress run",
+    "cy:run:headed": "cypress run --headed",
+    "cy:run:headless": "cypress run --headless",
+    "cy:run:emi:homeloan": "cypress run --spec 'cypress/e2e/homeLoan.cy.js'",
+    "cy:report:merge": "mochawesome-merge cypress/reports/*.json -o cypress/reports/merged-report.json",
+    "cy:report:generate": "marge cypress/reports/merged-report.json --reportDir cypress/reports/final --inline",
+    "cy:report:full": "npm run cy:report:merge && npm run cy:report:generate",
+    "cy:clean:reports": "rimraf cypress/reports && mkdir -p cypress/reports",
+    "cy:clean:downloads": "rimraf cypress/downloads && mkdir -p cypress/downloads",
+    "cy:clean:screenshots": "rimraf cypress/screenshots && mkdir -p cypress/screenshots",
+    "cy:clean:all": "npm run cy:clean:reports && npm run cy:clean:downloads && npm run cy:clean:screenshots",
+    "cy:ci:test": "CYPRESS_ENV=test cypress run --headless --browser chrome && npm run cy:report:full",
+    "pretest": "npm run cy:clean:reports"
   },
   "repository": {
     "type": "git",
@@ -29,6 +39,7 @@
     "dotenv": "^17.3.1",
     "mochawesome": "^7.1.4",
     "mochawesome-merge": "^5.1.1",
-    "mochawesome-report-generator": "^6.3.2"
+    "mochawesome-report-generator": "^6.3.2",
+    "xlsx": "^0.18.5"
   }
 }
