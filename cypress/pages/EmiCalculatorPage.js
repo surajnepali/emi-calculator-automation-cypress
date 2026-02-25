@@ -1,6 +1,7 @@
 /// <reference types="cypress" />
 
 import { isVisible } from "../support/assertions";
+import { normalizeNumber, roundNumber } from "../support/helper";
 
 const tooltipData = [];
 
@@ -35,6 +36,29 @@ class EmiCalculatorPage {
 
   verifyLoanTenureLabel() {
     cy.get(this.loanTenureLabel).should("have.text", "Loan Tenure");
+  }
+
+  enterLoanAmount(amount){
+    isVisible(this.loanAmountField).clear().type(amount);
+  }
+
+  enterInterestRate(rate){
+    isVisible(this.interestRateField).clear().type(rate);
+  }
+
+  enterLoanTenure(time, tenureType){
+    let tenure = time;
+    if(tenureType.includes("months")){
+      tenure = time * 12;
+    }
+    isVisible(this.loanTenureField).clear().type(tenure);
+  }
+
+  fillEmiFields(amount, rate, time, tenureType){
+    this.enterLoanAmount(amount);
+    this.enterInterestRate(rate);
+    this.enterLoanTenure(time, tenureType);
+    cy.get(this.loadEmiAmount).click();
   }
 
   moveLoanAmountSlider(amount) {
@@ -199,6 +223,54 @@ class EmiCalculatorPage {
               });
           }
         });
+      });
+  }
+
+  validateHomeLoanSummary(excelData) {
+    cy.get(this.loanAmountField)
+      .invoke("val")
+      .then((uiValue) => {
+        expect(normalizeNumber(uiValue))
+          .to.eq(normalizeNumber(excelData["Home Loan Amount"]));
+      });
+
+    cy.get(this.interestRateField)
+      .invoke("val")
+      .then((uiValue) => {
+        expect(roundNumber(uiValue))
+          .to.eq(roundNumber(excelData["Interest Rate (%)"]));
+      });
+
+    cy.get(this.loanTenureField)
+      .invoke("val")
+      .then((uiValue) => {
+        expect(Number(uiValue) * 12)
+          .to.eq(Number(excelData["Loan Tenure (months)"]));
+      });
+
+    cy.get(this.loadEmiAmount)
+      .invoke("text")
+      .then((uiValue) => {
+        expect(normalizeNumber(uiValue))
+          .to.eq(normalizeNumber(excelData["Loan EMI"]));
+      });
+
+    cy.get(this.emiTotalInterest)
+      .invoke("text")
+      .then((uiValue) => {
+        expect(normalizeNumber(uiValue))
+          .to.eq(normalizeNumber(excelData["Total Interest Payable"]));
+      });
+
+    cy.get(this.emiTotalAmount)
+      .invoke("text")
+      .then((uiValue) => {
+        expect(normalizeNumber(uiValue))
+          .to.eq(
+            normalizeNumber(
+              excelData["Total Payment (Principal + Interest)"]
+            )
+          );
       });
   }
 }
