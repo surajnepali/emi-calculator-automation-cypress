@@ -134,6 +134,67 @@ The framework uses `dotenv` with dynamic `.env.*` file loading.
 
 ---
 
+# Regression Strategy
+
+## Objective
+
+Ensure that:
+- EMI calculation logic remains correct after changes
+- UI interaction continues to work
+- Table & download functionality remain intact
+
+---
+
+## Regression Suite Design
+
+The regression suite is divided into 3 layers:
+
+### 1. Smoke Regression (Critical Path)
+
+Runs on every CI push.
+
+Includes:
+- EMI formula validation
+- Basic slider interaction
+- Table presence validation
+- Download file existence check
+
+Purpose:
+Detect critical failures early.
+
+---
+
+### 2. Core Business Regression
+
+Runs before release.
+
+Includes:
+- Multiple EMI scenarios
+- Boundary values (min/max loan, rate, tenure)
+- Total interest validation
+- Table year-wise consistency
+
+Purpose:
+Ensure financial accuracy remains intact.
+
+---
+
+### 3. Full Regression Suite
+
+Runs before production deployment.
+
+Includes:
+- Negative scenarios
+- Large value scenarios
+- UI responsiveness checks
+- Full table data verification
+- Excel content comparison
+
+Purpose:
+Ensure overall application stability.
+
+---
+
 ## 🚀 GitHub Actions CI/CD
 
 ### Pipeline Triggers
@@ -178,3 +239,8 @@ npm run cy:clean:all             # Clean all artifacts
 npm run cy:report:full           # Merge & generate HTML report
 npm run test:ci                  # CI pipeline command
 ```
+
+# Author
+
+Suraj Nepali  
+QA Engineer 
