@@ -106,34 +106,6 @@ The framework uses `dotenv` with dynamic `.env.*` file loading.
 
 ---
 
-## 📋 Test Cases
-
-| TC ID | Description | Block |
-|-------|-------------|-------|
-| TC-001 | Page loads successfully | Page Load |
-| TC-002 | Home Loan tab is active | Page Load |
-| TC-003 | All three loan tabs visible | Page Load |
-| TC-004 | All input fields present | Page Load |
-| TC-005 | EMI calc using env variables | Env Driven |
-| TC-006 | Total Interest & Payment display | Env Driven |
-| TC-007 | ₹50L @ 8.5% for 20Y | Valid Scenarios |
-| TC-008 | ₹10L @ 7% for 10Y | Valid Scenarios |
-| TC-009 | ₹1Cr @ 9% for 30Y | Valid Scenarios |
-| TC-010 | ₹20L @ 8% for 5Y | Valid Scenarios |
-| TC-011 | ₹30L @ 6.5% for 15Y | Valid Scenarios |
-| TC-012 | Min amount ₹1L | Boundary |
-| TC-013 | Max tenure 30Y | Boundary |
-| TC-014 | High interest 15% | Boundary |
-| TC-015 | Amortisation table renders | Table & Chart |
-| TC-016 | Pie chart renders | Table & Chart |
-| TC-017 | All result sections visible | Table & Chart |
-| TC-018 | cy.calculateEmi() accuracy | Custom Commands |
-| TC-019 | 0% interest edge case | Custom Commands |
-| TC-020 | cy.getEmiFromUI() returns positive | Custom Commands |
-| TC-021 | UI EMI matches formula EMI | Custom Commands |
-
----
-
 # Regression Strategy
 
 ## Objective
@@ -230,8 +202,7 @@ Reports include: embedded screenshots, pass/fail charts, test durations.
 
 ```bash
 npm run cy:open                  # Open Cypress GUI
-npm run cy:run:staging           # Run all tests (staging)
-npm run cy:run:qa                # Run all tests (QA)
+npm run cy:run:test                # Run all tests (Test)
 npm run cy:run:emi:homeloan      # Run Home Loan spec only
 npm run cy:run:chrome            # Run on Chrome
 npm run cy:run:firefox           # Run on Firefox
